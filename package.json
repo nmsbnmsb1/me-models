@@ -1,0 +1,16 @@
+{
+	"name": "me-models",
+	"version": "1.0.0",
+	"main": "./lib/index.js",
+	"bin": {},
+	"scripts": {
+		"build": "tsc"
+	},
+	"dependencies": {
+		"think-model": "^1.5.4"
+	},
+	"devDependencies": {
+		"@types/node": "^16.4.13",
+		"typescript": "^4.3.5"
+	}
+}

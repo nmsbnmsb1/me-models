@@ -3,7 +3,8 @@ export default class DataMask {
     static maskMail(mail: string): string;
     static maskIDNo(idNo: string): string;
     static maskRealName(realname: string): string;
-    static do(data: any, maskOptions: boolean | {
+    private static _defaultMask;
+    static do(data: any, maskOptions?: boolean | {
         [fieldName: string]: (value: any) => any;
     }): any;
 }

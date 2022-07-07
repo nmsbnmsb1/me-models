@@ -1,11 +1,7 @@
 import { IModel } from './model';
-import DataMask from './DataMask';
-import DBUtils from './DBUtils';
 import model from 'think-model';
 declare const _default: {
-    DataMask: typeof DataMask;
-    DBUtils: typeof DBUtils;
-    model: typeof model;
+    extendThinkAPP: typeof model;
     setCommon(common: {
         logConnect: boolean;
         logSql: boolean;
@@ -18,3 +14,6 @@ declare const _default: {
     get(modelName?: string, dbNameOrConfig?: any): IModel;
 };
 export default _default;
+export * from './model';
+export * from './DataMask';
+export * from './DBUtils';

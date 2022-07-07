@@ -1,7 +1,5 @@
 import helper from 'think-helper';
 import Model, { IModel } from './model';
-import DataMask from './DataMask';
-import DBUtils from './DBUtils';
 import model from 'think-model';
 
 let configMap: any = {};
@@ -9,9 +7,7 @@ let commonConfig: any;
 let defaultDBName: string = '';
 
 export default {
-	DataMask,
-	DBUtils,
-	model,
+	extendThinkAPP: model,
 	//
 	setCommon(common: { logConnect: boolean; logSql: boolean; logger: (msg: string) => any }) {
 		commonConfig = common;
@@ -37,3 +33,7 @@ export default {
 		return new Model(modelName, config);
 	},
 };
+
+export * from './model';
+export * from './DataMask';
+export * from './DBUtils';

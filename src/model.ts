@@ -322,13 +322,16 @@ Model.prototype.addMany2 = async function (data: any, options?: any, replace?: b
 		item = await this.db().parseData(item, false, options.table);
 		return this.beforeAdd(item, options);
 	});
-	data = await Promise.all(promises);
+	let ndata = await Promise.all(promises);
 	if (replace) {
 		options.replace = replace;
 	}
-	const insertIds = await this.db().addMany(data, options);
-	promises = data.map((item, i) => {
+	const insertIds = await this.db().addMany(ndata, options);
+	promises = ndata.map(async (item: any, i) => {
 		item[this.pk] = insertIds[i];
+		//添加pk字段
+		data[i][this.pk] = insertIds[i];
+		//
 		return this.afterAdd(item, options);
 	});
 	await Promise.all(promises);

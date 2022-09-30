@@ -481,8 +481,8 @@ Model.prototype.checkTable = async function (fields: IFields) {
 	return this.db().checkTable ? this.db().checkTable(this.modelName, fields) : false;
 };
 
-Model.prototype.checkIndex = async function (indexName: string, columnName: string) {
-	return this.db().checkIndex ? this.db().checkIndex(indexName, this.modelName, columnName) : false;
+Model.prototype.checkIndex = async function (indexName: string, columnNames: string[], options?: any) {
+	return this.db().checkIndex ? this.db().checkIndex(indexName, this.modelName, columnNames, options) : false;
 };
 
 export default Model;

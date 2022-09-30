@@ -293,7 +293,7 @@ export interface IModel {
 	isTableExists(): Promise<any>;
 	createTable(fields: IFields): Promise<any>;
 	checkTable(fields: IFields): Promise<any>;
-	checkIndex(indexName: string, columnName: string): Promise<any>;
+	checkIndex(indexName: string, columnNames: string[], options?: any): Promise<any>;
 }
 
 Model.prototype.add2 = async function (data: any, options?: any) {

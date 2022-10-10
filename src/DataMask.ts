@@ -1,7 +1,7 @@
 import helper from 'think-helper';
 
 //数据打码
-export default class DataMask {
+export class DataMask {
 	public static maskPhone(phone: string) {
 		return !helper.isEmpty(phone) ? phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '';
 	}

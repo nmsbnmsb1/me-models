@@ -1,5 +1,5 @@
 import { IModel } from './model';
-export default class DBUtils {
+export declare class DBUtils {
     static escapeString(str: string): string;
     static toBoolean(b: any): 1 | 0;
     static formatSql(sql: string): string;

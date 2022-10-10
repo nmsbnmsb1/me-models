@@ -1,4 +1,4 @@
-export default class DataMask {
+export declare class DataMask {
     static maskPhone(phone: string): string;
     static maskMail(mail: string): string;
     static maskIDNo(idNo: string): string;

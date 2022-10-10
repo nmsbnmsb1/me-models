@@ -1,4 +1,4 @@
-import Model from 'think-model/lib/model';
+import ThinkModel from 'think-model/lib/model';
 export interface IFieldOptions {
     type: string;
     nn?: boolean;
@@ -13,7 +13,7 @@ export interface IFields {
     [name: string]: boolean | IFieldOptions;
 }
 export interface IModel {
-    new (modelName?: string, config?: object): Model;
+    new (modelName?: string, config?: object): ThinkModel;
     readonly HAS_MANY: number;
     readonly HAS_ONE: number;
     readonly BELONG_TO: number;
@@ -24,24 +24,24 @@ export interface IModel {
     readonly tableName: string;
     readonly pk: string;
     readonly lastSql: string;
-    model(name: string): Model;
-    cache(key?: string, config?: object): Model;
-    limit(offset?: Array<string | number> | number | string, length?: number | string): Model;
-    page(page?: Array<string | number> | number | string, listRows?: string | number): Model;
-    where(where?: string | object): Model;
-    field(field?: string, reverse?: boolean): Model;
-    fieldReverse(field?: string): Model;
-    table(table?: string, hasPrefix?: boolean): Model;
-    union(union?: string, all?: boolean): Model;
-    join(join?: string | Array<string> | object): Model;
-    order(value: string): Model;
-    alias(value: string): Model;
-    having(value: string): Model;
-    group(value: string): Model;
-    lock(value: boolean): Model;
-    auto(value: string): Model;
-    distinct(data: any): Model;
-    explain(explain: string): Model;
+    model(name: string): ThinkModel;
+    cache(key?: string, config?: object): ThinkModel;
+    limit(offset?: Array<string | number> | number | string, length?: number | string): ThinkModel;
+    page(page?: Array<string | number> | number | string, listRows?: string | number): ThinkModel;
+    where(where?: string | object): ThinkModel;
+    field(field?: string, reverse?: boolean): ThinkModel;
+    fieldReverse(field?: string): ThinkModel;
+    table(table?: string, hasPrefix?: boolean): ThinkModel;
+    union(union?: string, all?: boolean): ThinkModel;
+    join(join?: string | Array<string> | object): ThinkModel;
+    order(value: string): ThinkModel;
+    alias(value: string): ThinkModel;
+    having(value: string): ThinkModel;
+    group(value: string): ThinkModel;
+    lock(value: boolean): ThinkModel;
+    auto(value: string): ThinkModel;
+    distinct(data: any): ThinkModel;
+    explain(explain: string): ThinkModel;
     parseOptions(options: any): Promise<any>;
     add(data: object, options?: object, replace?: boolean): Promise<string>;
     thenAdd(data: object, where?: object | string): Promise<object>;
@@ -65,8 +65,8 @@ export interface IModel {
     query(sqlOptions: object | string): Promise<any>;
     execute(sqlOptions: object): Promise<any>;
     parseSql(sqlOptions: object, ...args: Array<any>): object;
-    setRelation(value: boolean): Model;
-    setRelation(name: string, value?: boolean): Model;
+    setRelation(value: boolean): ThinkModel;
+    setRelation(name: string, value?: boolean): ThinkModel;
     startTrans(): Promise<any>;
     commit(): Promise<any>;
     rollback(): Promise<any>;
@@ -86,4 +86,4 @@ export interface IModel {
     checkTable(fields: IFields): Promise<any>;
     checkIndex(indexName: string, columnNames: string[], options?: any): Promise<any>;
 }
-export default Model;
+export declare const Model: any;

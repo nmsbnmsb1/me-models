@@ -1,7 +1,7 @@
 import helper from 'think-helper';
 import { IModel } from './model';
 
-export default class DBUtils {
+export class DBUtils {
 	public static escapeString(str: string) {
 		if (!str) return '';
 		// str = mysql.escape(str);

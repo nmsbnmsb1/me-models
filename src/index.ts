@@ -1,5 +1,5 @@
 import helper from 'think-helper';
-import Model, { IModel } from './model';
+import { Model, IModel } from './model';
 import model from 'think-model';
 
 let configMap: any = {};

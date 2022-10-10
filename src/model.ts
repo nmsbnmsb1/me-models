@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 import helper from 'think-helper';
-import Model from 'think-model/lib/model';
-import DBUtils from './DBUtils';
+import ThinkModel from 'think-model/lib/model';
+import { DBUtils } from './DBUtils';
 
 export interface IFieldOptions {
 	type: string;
@@ -42,7 +42,7 @@ export interface IFields {
 
 //think-model/index.d.ts
 export interface IModel {
-	new (modelName?: string, config?: object): Model;
+	new (modelName?: string, config?: object): ThinkModel;
 	readonly HAS_MANY: number;
 	readonly HAS_ONE: number;
 	readonly BELONG_TO: number;
@@ -74,76 +74,76 @@ export interface IModel {
 	/**
 	 * get model instance
 	 */
-	model(name: string): Model;
+	model(name: string): ThinkModel;
 	/**
 	 * set cache options
 	 */
-	cache(key?: string, config?: object): Model;
+	cache(key?: string, config?: object): ThinkModel;
 	/**
 	 * set limit options
 	 */
-	limit(offset?: Array<string | number> | number | string, length?: number | string): Model;
+	limit(offset?: Array<string | number> | number | string, length?: number | string): ThinkModel;
 	/**
 	 * set page options
 	 */
-	page(page?: Array<string | number> | number | string, listRows?: string | number): Model;
+	page(page?: Array<string | number> | number | string, listRows?: string | number): ThinkModel;
 	/**
 	 * set where options
 	 * @return {} []
 	 */
-	where(where?: string | object): Model;
+	where(where?: string | object): ThinkModel;
 	/**
 	 * set field options
 	 */
-	field(field?: string, reverse?: boolean): Model;
+	field(field?: string, reverse?: boolean): ThinkModel;
 	/**
 	 * set field reverse
 	 */
-	fieldReverse(field?: string): Model;
+	fieldReverse(field?: string): ThinkModel;
 	/**
 	 * set table name
 	 */
-	table(table?: string, hasPrefix?: boolean): Model;
+	table(table?: string, hasPrefix?: boolean): ThinkModel;
 	/**
 	 * union options
 	 */
-	union(union?: string, all?: boolean): Model;
+	union(union?: string, all?: boolean): ThinkModel;
 	/**
 	 * join
 	 */
-	join(join?: string | Array<string> | object): Model;
+	join(join?: string | Array<string> | object): ThinkModel;
 	/**
 	 * set order options
 	 */
-	order(value: string): Model;
+	order(value: string): ThinkModel;
 	/**
 	 * set table alias
 	 */
-	alias(value: string): Model;
+	alias(value: string): ThinkModel;
 	/**
 	 * set having options
 	 */
-	having(value: string): Model;
+	having(value: string): ThinkModel;
 	/**
 	 * set group options
 	 */
-	group(value: string): Model;
+	group(value: string): ThinkModel;
 	/**
 	 * set lock options
 	 */
-	lock(value: boolean): Model;
+	lock(value: boolean): ThinkModel;
 	/**
 	 * set auto options
 	 */
-	auto(value: string): Model;
+	auto(value: string): ThinkModel;
 	/**
 	 * set distinct options
 	 */
-	distinct(data: any): Model;
+	distinct(data: any): ThinkModel;
 	/**
 	 * set explain
 	 */
-	explain(explain: string): Model;
+	explain(explain: string): ThinkModel;
 
 	/**
 	 * parse options, reset this.options to {}
@@ -254,11 +254,11 @@ export interface IModel {
 	/**
 	 * false means disable all, true means enable all
 	 */
-	setRelation(value: boolean): Model;
+	setRelation(value: boolean): ThinkModel;
 	/**
 	 * set relation
 	 */
-	setRelation(name: string, value?: boolean): Model;
+	setRelation(name: string, value?: boolean): ThinkModel;
 	/**
 	 * start transaction
 	 */
@@ -296,7 +296,7 @@ export interface IModel {
 	checkIndex(indexName: string, columnNames: string[], options?: any): Promise<any>;
 }
 
-Model.prototype.add2 = async function (data: any, options?: any) {
+ThinkModel.prototype.add2 = async function (data: any, options?: any) {
 	if (data) {
 		if (data.create_time === undefined) data.create_time = Date.now();
 		if (data.update_time === undefined) data.update_time = data.create_time;
@@ -304,7 +304,7 @@ Model.prototype.add2 = async function (data: any, options?: any) {
 	data.id = await this.add(data, options);
 	return data;
 };
-Model.prototype.update2 = async function (data: any, options?: any) {
+ThinkModel.prototype.update2 = async function (data: any, options?: any) {
 	if (data) {
 		if (data.update_time === undefined) data.update_time = Date.now();
 	}
@@ -312,7 +312,7 @@ Model.prototype.update2 = async function (data: any, options?: any) {
 };
 
 //对齐批量操作的字段
-Model.prototype.addMany2 = async function (data: any, options?: any, replace?: boolean) {
+ThinkModel.prototype.addMany2 = async function (data: any, options?: any, replace?: boolean) {
 	options = await this.parseOptions(options);
 	let promises = data.map(async (item) => {
 		/************************************************************/
@@ -337,7 +337,7 @@ Model.prototype.addMany2 = async function (data: any, options?: any, replace?: b
 	await Promise.all(promises);
 	return insertIds;
 };
-Model.prototype.updateMany2 = async function (dataList: any, options?: any) {
+ThinkModel.prototype.updateMany2 = async function (dataList: any, options?: any) {
 	let promises;
 	let useBatch;
 	const db = this.db();
@@ -423,7 +423,7 @@ Model.prototype.updateMany2 = async function (dataList: any, options?: any) {
 	return Promise.all(promises);
 };
 
-Model.prototype.field2 = function (field: any, filedOptions?: any) {
+ThinkModel.prototype.field2 = function (field: any, filedOptions?: any) {
 	if (filedOptions) {
 		this.field(DBUtils.getFieldsSql(field, filedOptions));
 	} else {
@@ -431,11 +431,11 @@ Model.prototype.field2 = function (field: any, filedOptions?: any) {
 	}
 	return this;
 };
-Model.prototype.fieldReverse2 = function (...other: any) {
+ThinkModel.prototype.fieldReverse2 = function (...other: any) {
 	this.fieldReverse(`create_time,update_time,delete_time${other ? ',' + other.join(',') : ''}`);
 	return this;
 };
-Model.prototype.where2 = function (w: any) {
+ThinkModel.prototype.where2 = function (w: any) {
 	if (helper.isString(w)) {
 		if (w.indexOf('delete_time') < 0) {
 			if (w !== '') w += ' and ';
@@ -448,11 +448,11 @@ Model.prototype.where2 = function (w: any) {
 	this.where(w);
 	return this;
 };
-Model.prototype.delete2 = async function () {
+ThinkModel.prototype.delete2 = async function () {
 	const nowMS = Date.now();
 	return this.update({ delete_time: nowMS, update_time: nowMS });
 };
-Model.prototype.thenUpdate2 = async function (where: any, data: any, addData?: any) {
+ThinkModel.prototype.thenUpdate2 = async function (where: any, data: any, addData?: any) {
 	let successNum = await (this.where(where) as any).update2(data);
 	if (successNum <= 0) {
 		await this.add2(addData || data);
@@ -460,7 +460,7 @@ Model.prototype.thenUpdate2 = async function (where: any, data: any, addData?: a
 	}
 	return successNum;
 };
-Model.prototype.thenAdd2 = async function (where: any, addData: any) {
+ThinkModel.prototype.thenAdd2 = async function (where: any, addData: any) {
 	const exists = !helper.isEmpty(await this.field('id').where(where).find());
 	if (!exists) {
 		await this.add2(addData);
@@ -469,20 +469,20 @@ Model.prototype.thenAdd2 = async function (where: any, addData: any) {
 };
 
 //
-Model.prototype.isTableExists = async function () {
+ThinkModel.prototype.isTableExists = async function () {
 	return this.db().isTableExists ? this.db().isTableExists(this.modelName) : false;
 };
 
-Model.prototype.createTable = async function (fields: IFields) {
+ThinkModel.prototype.createTable = async function (fields: IFields) {
 	return this.db().createTable ? this.db().createTable(this.modelName, fields) : false;
 };
 
-Model.prototype.checkTable = async function (fields: IFields) {
+ThinkModel.prototype.checkTable = async function (fields: IFields) {
 	return this.db().checkTable ? this.db().checkTable(this.modelName, fields) : false;
 };
 
-Model.prototype.checkIndex = async function (indexName: string, columnNames: string[], options?: any) {
+ThinkModel.prototype.checkIndex = async function (indexName: string, columnNames: string[], options?: any) {
 	return this.db().checkIndex ? this.db().checkIndex(indexName, this.modelName, columnNames, options) : false;
 };
 
-export default Model;
+export const Model = ThinkModel;

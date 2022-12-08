@@ -40,6 +40,11 @@ export interface IFields {
 	[name: string]: boolean | IFieldOptions;
 }
 
+export interface IIndexOptions {
+	unique: boolean;
+	type: string;
+}
+
 //think-model/index.d.ts
 export interface IModel {
 	new (modelName?: string, config?: object): ThinkModel;
@@ -481,7 +486,7 @@ ThinkModel.prototype.checkTable = async function (fields: IFields) {
 	return this.db().checkTable ? this.db().checkTable(this.modelName, fields) : false;
 };
 
-ThinkModel.prototype.checkIndex = async function (indexName: string, columnNames: string[], options?: any) {
+ThinkModel.prototype.checkIndex = async function (indexName: string, columnNames: string[], options?: IIndexOptions) {
 	return this.db().checkIndex ? this.db().checkIndex(indexName, this.modelName, columnNames, options) : false;
 };
 

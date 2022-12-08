@@ -12,6 +12,10 @@ export interface IFields {
     sp: boolean | IFieldOptions;
     [name: string]: boolean | IFieldOptions;
 }
+export interface IIndexOptions {
+    unique: boolean;
+    type: string;
+}
 export interface IModel {
     new (modelName?: string, config?: object): ThinkModel;
     readonly HAS_MANY: number;

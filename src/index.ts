@@ -37,3 +37,4 @@ export default {
 export * from './model';
 export * from './DataMask';
 export * from './DBUtils';
+export * from './Redis';

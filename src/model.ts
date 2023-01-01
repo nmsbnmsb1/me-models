@@ -453,9 +453,9 @@ ThinkModel.prototype.where2 = function (w: any) {
 	this.where(w);
 	return this;
 };
-ThinkModel.prototype.delete2 = async function () {
+ThinkModel.prototype.delete2 = async function (others) {
 	const nowMS = Date.now();
-	return this.update({ delete_time: nowMS, update_time: nowMS });
+	return this.update({ ...others, delete_time: nowMS, update_time: nowMS });
 };
 ThinkModel.prototype.thenUpdate2 = async function (where: any, data: any, addData?: any) {
 	let successNum = await (this.where(where) as any).update2(data);

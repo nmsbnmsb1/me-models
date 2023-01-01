@@ -26,6 +26,11 @@ export declare class DBUtils {
             ns: string;
             orderfield: string;
         };
+    }, nsref?: {
+        [name: string]: {
+            ns: string;
+            orderfield?: string;
+        };
     }): any;
     static fillDefaultData(data: any, dbconfig: any): any;
     static cropData(data: any, fields: string | string[], ignores: string | string[]): any;
@@ -45,9 +50,9 @@ export declare class DBUtils {
         [f: string]: string;
     }, hget?: string | string[], hgetOptions?: any): {
         alias: string;
-        tfields: string[];
-        dataFields: any[];
-        hgetFields: string[];
+        tfields: string[] | "*";
+        dataFields: any;
+        hgetFields: string | string[];
         asFields: {
             [f: string]: string;
         };
@@ -121,6 +126,7 @@ export declare class DBUtils {
         fields: {
             alias?: string;
             t: any;
+            tfields?: any;
             hget: string;
             hgetOptions?: any;
             on?: string;
@@ -132,7 +138,10 @@ export declare class DBUtils {
         }[];
         where: string[];
         order: string;
-        nslis: {
+        nslis?: string | {
+            t: any;
+            name: string;
+        } | {
             ns: string;
             orderfield: string;
         };

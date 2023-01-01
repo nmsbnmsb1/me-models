@@ -73,6 +73,15 @@ export declare class Redis {
             pkfield?: string;
         }[];
     }, delAll?: boolean, onLiKeyNotFound?: () => Promise<any[]>, pipelineInstance?: any): Promise<void>;
+    static cdelrefdata(options: {
+        ns: string;
+        name: string;
+        blocks?: {
+            prefix?: string;
+            ns: string;
+            pkfield?: string;
+        }[];
+    }, delAll?: boolean, onLiKeyNotFound?: () => Promise<any[]>, pipelineInstance?: any): Promise<void>;
     static cexists(key: string): Promise<any>;
     static cexistsData({ prefix, ns, pkvalue }: {
         prefix?: string;
@@ -109,7 +118,7 @@ export declare class Redis {
     }, options: {
         forcedb?: boolean;
         blocks: (IBlock & {
-            sel: (missPkvalues: any, pkfield: any) => Promise<any>;
+            sel?: (missPkvalues: any, pkfield: any) => Promise<any>;
         })[];
         expire?: number;
         dataChecker?: (data: any) => boolean | {
@@ -126,33 +135,13 @@ export declare class Redis {
             page: number;
             data: any[];
         };
+        cli?: boolean;
     }): Promise<{
         count: number;
         totalPages: number;
         pageSize: number;
         page: number;
         data: any[];
-    }>;
-    static rli(options: ILisOptions & {
-        blocks: (IBlock & {
-            sel: (missPkvalues: any, pkfield: any) => Promise<any>;
-        })[];
-        sel: (options: any) => object[] | {
-            count: number;
-            totalPages: number;
-            pageSize: number;
-            page: number;
-            data: object[];
-        };
-        page: number;
-        pageSize: number;
-        order: string;
-    }): Promise<{
-        count: any;
-        totalPages: number;
-        pageSize: number;
-        page: number;
-        data: any;
     }>;
     static rdatadb(options: {
         sel: (options: any) => object[] | {
@@ -166,6 +155,7 @@ export declare class Redis {
             sel: (missPkvalues: any, pkfield: any) => Promise<any>;
         })[];
         expire?: number;
+        clidata?: boolean;
     }): Promise<{
         count: number;
         totalPages: number;
@@ -173,6 +163,40 @@ export declare class Redis {
         page: number;
         data: any[];
     }>;
+    static rli(options: ILisOptions & {
+        blocks: (IBlock & {
+            sel?: (missPkvalues: any, pkfield: any) => Promise<any>;
+        })[];
+        page: number;
+        pageSize: number;
+        sel: (options: any) => object[] | {
+            count: number;
+            totalPages: number;
+            pageSize: number;
+            page: number;
+            data: object[];
+        };
+        cli?: boolean;
+        order?: string;
+    }): Promise<{
+        count: any;
+        totalPages: number;
+        pageSize: number;
+        page: number;
+        data: any;
+    }>;
+    static rrefdata(options: {
+        forcedb?: boolean;
+        ns: string;
+        name: string;
+        orderfield?: string;
+        sel: (options: any) => any;
+        block: IBlock;
+        expire?: number;
+        dataChecker?: (data: any) => boolean | {
+            [field: string]: any;
+        };
+    }): Promise<any>;
     static rupdateOne({ t, where, updateData }: {
         t: IModel;
         where: any;

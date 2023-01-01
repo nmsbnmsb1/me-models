@@ -72,7 +72,8 @@ export class DBUtils {
 		fields: { [field: string]: ITFieldOptions },
 		index: { [ixn: string]: IIndex } = {},
 		nsdata: { ns: string; pkfield: string },
-		nslist: { [name: string]: { ns: string; orderfield: string } } = {}
+		nslist: { [name: string]: { ns: string; orderfield: string } } = {},
+		nsref: { [name: string]: { ns: string; orderfield?: string } } = {}
 	) {
 		let all: any = {
 			name,
@@ -91,6 +92,7 @@ export class DBUtils {
 			//
 			nsdata,
 			nslist,
+			nsref,
 		};
 		//其他的分类字段
 		for (let field in fields) {
@@ -200,30 +202,37 @@ export class DBUtils {
 		hget?: string | string[],
 		hgetOptions?: any
 	) {
-		let tfs = helper.isString(fields) ? (fields as string).split(',') : (fields as string[]);
-		let tas = DBUtils.asFields(alias, defaultAs === true ? fields : defaultAs, sp, customAs);
+		let tfs: '*' | string[] = fields as any;
+		if (helper.isString(fields) && fields !== '*') tfs = (fields as string).split(',');
+		let tas = tfs === '*' ? {} : DBUtils.asFields(alias, defaultAs === true ? fields : defaultAs, sp, customAs);
 		let hgfs;
 		if (hget) {
 			if (!hgetOptions) hgfs = helper.isString(hget) ? (hget as string).split(',') : (hget as string[]);
 			else hgfs = DBUtils.modifyFields(hget, hgetOptions);
 		}
 		//
-		let dataFields = [];
-		hget = [];
-		for (let i = 0; i < tfs.length; i++) {
-			let f = tfs[i];
-			let tf = tfs[i];
-			let df = tfs[i];
-			//
-			if (tas[f]) {
-				df = tas[f];
-				tf = `${f} as ${tas[f]}`;
+		let dataFields;
+		if (tfs === '*') {
+			dataFields = '*';
+			hget = hgfs;
+		} else {
+			dataFields = [];
+			hget = [];
+			for (let i = 0; i < tfs.length; i++) {
+				let f = tfs[i];
+				let tf = tfs[i];
+				let df = tfs[i];
+				//
+				if (tas[f]) {
+					df = tas[f];
+					tf = `${f} as ${tas[f]}`;
+				}
+				if (alias) tf = `${alias}.${tf}`;
+				//
+				tfs[i] = tf;
+				dataFields.push(df);
+				if (!hgfs || hgfs.indexOf(f) >= 0) hget.push(df);
 			}
-			if (alias) tf = `${alias}.${tf}`;
-			//
-			tfs[i] = tf;
-			dataFields.push(df);
-			if (!hgfs || hgfs.indexOf(f) >= 0) hget.push(df);
 		}
 		//
 		return { alias, tfields: tfs, dataFields, hgetFields: hget, asFields: tas };
@@ -410,6 +419,7 @@ export class DBUtils {
 		fields: {
 			alias?: string;
 			t: any;
+			tfields?: any;
 			hget: string;
 			hgetOptions?: any;
 			on?: string;
@@ -420,7 +430,7 @@ export class DBUtils {
 		}[];
 		where: string[];
 		order: string;
-		nslis: { ns: string; orderfield: string };
+		nslis?: string | { t: any; name: string } | { ns: string; orderfield: string };
 	}) {
 		let { fields: fs, where, order, nslis } = options;
 		//
@@ -428,8 +438,8 @@ export class DBUtils {
 		let tables = [];
 		let blocks = [];
 		for (let i = 0; i < fs.length; i++) {
-			let { alias, t, hget, hgetOptions, on, pkfield, sp = false, customAs = undefined } = fs[i];
-			let field = DBUtils.getFieldsObject(alias, t.full, i === 0 ? undefined : true, sp, customAs, hget, hgetOptions);
+			let { alias, t, tfields, hget, hgetOptions, on, pkfield, sp = false, customAs = undefined } = fs[i];
+			let field = DBUtils.getFieldsObject(alias, tfields || t.full, i === 0 ? undefined : true, sp, customAs, hget, hgetOptions);
 			let table = { t: t.name, ...field, on };
 			let block = { ...t.nsdata, ...field };
 			if (pkfield) block.pkfield = pkfield;
@@ -439,6 +449,19 @@ export class DBUtils {
 			tables.push(table);
 			blocks.push(block);
 		}
-		return { ...fields, tables, where, order, nslis, blocks };
+		//
+		let ns: { ns: string; orderfield: string };
+		if (nslis) {
+			if (helper.isString(nslis)) ns = { ...fs[0].t.nslist[nslis as string] };
+			else if ((nslis as any).t) {
+				let { t, name } = nslis as any;
+				ns = { ...t.nslist[name] };
+			} else {
+				ns = nslis as any;
+			}
+		}
+		//
+		//console.log(blocks);
+		return { ...fields, tables, where, order, nslis: ns, blocks };
 	}
 }

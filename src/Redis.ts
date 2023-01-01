@@ -201,6 +201,16 @@ export class Redis {
 		//
 		if (!pipelineInstance) await pipeline.exec();
 	}
+	public static async cdelrefdata(
+		options: { ns: string; name: string; blocks?: { prefix?: string; ns: string; pkfield?: string }[] },
+		delAll = false,
+		onLiKeyNotFound?: () => Promise<any[]>,
+		pipelineInstance?: any
+	) {
+		(options as any).prefix = 'ref_data';
+		(options as any).liname = options.name;
+		return Redis.cdelli(options as any, delAll, onLiKeyNotFound, pipelineInstance);
+	}
 
 	//检查key
 	public static async cexists(key: string) {
@@ -357,7 +367,7 @@ export class Redis {
 		dataPkvalue: string | { [pkfield: string]: string },
 		options: {
 			forcedb?: boolean;
-			blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
+			blocks: (IBlock & { sel?: (missPkvalues, pkfield) => Promise<any> })[];
 			expire?: number;
 			dataChecker?: (data) => boolean | { [field: string]: any };
 		}
@@ -368,9 +378,7 @@ export class Redis {
 		//
 		let data = datas[0];
 		let { dataChecker } = options;
-		if (helper.isFunction(dataChecker)) {
-			return !dataChecker(data) ? undefined : data;
-		}
+		if (helper.isFunction(dataChecker)) return !dataChecker(data) ? undefined : data;
 		if (helper.isObject(dataChecker)) {
 			let valid = true;
 			for (let f in dataChecker) {
@@ -389,6 +397,7 @@ export class Redis {
 			page: number;
 			pageSize: number;
 			sel: (options) => any[] | { count: number; totalPages: number; pageSize: number; page: number; data: any[] };
+			cli?: boolean;
 		}
 	) {
 		let {
@@ -396,15 +405,18 @@ export class Redis {
 			blocks,
 			page = 1,
 			pageSize = 0,
+			cli,
 		} = formatOptions(options) as ILisOptions & {
 			page: number;
 			pageSize: number;
 			sel: (options) => any[] | { count: number; totalPages: number; pageSize: number; page: number; data: any[] };
+			cli?: boolean;
 		};
 		// const ms = Date.now();
 		//拉取数据
-		let data = await sel(options);
-		await Redis.cli(data, options);
+		let data = (await sel(options)) as any;
+		if (!helper.isArray(data) && !data.data && isNaN(data.pageSize)) data = [data];
+		if (cli !== false) await Redis.cli(data, options);
 
 		//有的时候 sel获得的数据与指定的数据长度不一致
 		//只考虑sel返回全部，list返回部分
@@ -432,13 +444,49 @@ export class Redis {
 		//
 		return pageData;
 	}
+	public static async rdatadb(options: {
+		sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
+		blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
+		expire?: number;
+		clidata?: boolean;
+	}) {
+		let { sel, blocks, clidata } = formatOptions(options) as {
+			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
+			blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
+			expire?: number;
+			clidata?: boolean;
+		};
+		// const ms = Date.now();
+		//拉取数据
+		let data = await sel(options);
+		if (clidata !== false) await Redis.clidata(data, options);
+
+		//裁切字段
+		let pageData: { count: number; totalPages: number; pageSize: number; page: number; data: any[] } = helper.isArray(data)
+			? { count: (data as any[]).length, totalPages: 1, pageSize: 0, page: 1, data: data as any[] }
+			: (data as any);
+		for (let i = 0; i < pageData.data.length; i++) {
+			let d = pageData.data[i];
+			pageData.data[i] = {};
+			for (let { hgetFields } of blocks) {
+				for (const f of hgetFields) {
+					pageData.data[i][f] = d[f];
+				}
+			}
+		}
+		//
+		return pageData;
+	}
 	public static async rli(
 		options: ILisOptions & {
-			blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
-			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
+			blocks: (IBlock & { sel?: (missPkvalues, pkfield) => Promise<any> })[];
+			//
 			page: number;
 			pageSize: number;
-			order: string;
+			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
+			cli?: boolean;
+			//
+			order?: string;
 		}
 	) {
 		if (options.forcedb) {
@@ -457,9 +505,9 @@ export class Redis {
 			order = 'asc',
 		} = formatOptions(options) as ILisOptions & {
 			blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
-			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
 			page: number;
 			pageSize: number;
+			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
 			order: string;
 		};
 		//
@@ -510,36 +558,37 @@ export class Redis {
 		}
 		return { count, totalPages: pageSize <= 0 ? 1 : Math.ceil(count / pageSize), pageSize, page, data: datas };
 	}
-	public static async rdatadb(options: {
-		sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
-		blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
+	//有的时候无法通过设定的主键直接获取数据，只能通过多个条件来获取数据，可以通过引用data数据的方式来实现
+	public static async rrefdata(options: {
+		forcedb?: boolean;
+		ns: string;
+		name: string;
+		orderfield?: string;
+		sel: (options) => any;
+		block: IBlock;
 		expire?: number;
+		dataChecker?: (data) => boolean | { [field: string]: any };
 	}) {
-		let { sel, blocks } = formatOptions(options) as {
-			sel: (options) => object[] | { count: number; totalPages: number; pageSize: number; page: number; data: object[] };
-			blocks: (IBlock & { sel: (missPkvalues, pkfield) => Promise<any> })[];
-			expire?: number;
-		};
-		// const ms = Date.now();
-		//拉取数据
-		let data = await sel(options);
-		await Redis.clidata(data, options);
-
-		//裁切字段
-		let pageData: { count: number; totalPages: number; pageSize: number; page: number; data: any[] } = helper.isArray(data)
-			? { count: (data as any[]).length, totalPages: 1, pageSize: 0, page: 1, data: data as any[] }
-			: (data as any);
-		for (let i = 0; i < pageData.data.length; i++) {
-			let d = pageData.data[i];
-			pageData.data[i] = {};
-			for (let { hgetFields } of blocks) {
-				for (const f of hgetFields) {
-					pageData.data[i][f] = d[f];
+		let { forcedb, ns, name, orderfield = 'id', sel, block } = options;
+		let blocks = [block];
+		let listdata = await Redis.rli({ forcedb, prefix: 'ref_data', ns, liname: name, orderfield, blocks, sel, page: 1, pageSize: 0 });
+		if (helper.isEmpty(listdata) || helper.isEmpty(listdata.data)) return;
+		let data = listdata.data[0];
+		if (helper.isEmpty(data)) return;
+		//
+		let { dataChecker } = options;
+		if (helper.isFunction(dataChecker)) return !dataChecker(data) ? undefined : data;
+		if (helper.isObject(dataChecker)) {
+			let valid = true;
+			for (let f in dataChecker) {
+				if (data[f] !== dataChecker[f]) {
+					valid = false;
+					break;
 				}
 			}
+			return !valid ? undefined : data;
 		}
-		//
-		return pageData;
+		return data;
 	}
 
 	//
